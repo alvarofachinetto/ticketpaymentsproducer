@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @ControllerAdvice
 @Slf4j
-public class TicketPaymentControllerAdvice {
+public class TicketPaymentsControllerAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleRequestBody(MethodArgumentNotValidException ex) {

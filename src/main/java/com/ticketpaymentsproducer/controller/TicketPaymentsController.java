@@ -2,7 +2,7 @@ package com.ticketpaymentsproducer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ticketpaymentsproducer.domain.Ticket;
-import com.ticketpaymentsproducer.producer.TicketPaymentProducer;
+import com.ticketpaymentsproducer.producer.TicketPaymentsProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,10 +17,10 @@ import javax.validation.Valid;
 @Slf4j
 @RestController
 @RequestMapping("/v1/tickets")
-public class TicketPaymentController {
+public class TicketPaymentsController {
 
     @Autowired
-    private TicketPaymentProducer ticketPaymentProducer;
+    private TicketPaymentsProducer ticketPaymentProducer;
 
 
     @PostMapping
@@ -28,7 +28,7 @@ public class TicketPaymentController {
 
         log.info("Send Ticket");
 
-        ticketPaymentProducer.sendTicket(ticket);
+        ticketPaymentProducer.sendTicket2(ticket);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ticket);
     }
