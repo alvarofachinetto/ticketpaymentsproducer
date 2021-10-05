@@ -1,0 +1,59 @@
+{
+  "type": "record",
+  "namespace": "com.ticketpaymentsproducer",
+  "name": "Ticket",
+  "version": "1",
+  "fields": [
+    { "name": "title", "type": "string", "doc": "Title movie" },
+    { "name": "address",
+      "type": {
+        "name": "address",
+        "type": "record",
+        "fields": [
+          {
+            "name": "street", "type": "string", "doc": "Street name"
+          },
+          {
+            "name": "number", "type": "int", "doc": "Street number"
+          }
+        ]
+      }
+    },
+    {
+      "name": "buyer",
+      "type": {
+          "name": "buyer",
+          "type": "record",
+          "fields": [
+            {
+              "name": "name", "type": "string", "doc": "Buyer name"
+            },
+            {
+              "name": "cpf", "type": "string", "doc": "Buyer cpf"
+            },
+            {
+              "name": "email", "type": "string", "doc": "Buyer email"
+            }
+          ]
+      }
+    },
+    {
+      "name": "dateTime", "type": "string", "doc": "Date and time of buy ticket"
+    },
+    {
+      "name": "amount", "type": "int", "doc": "Amount ticket"
+    },
+    {
+      "name": "price", "type": "double", "doc": "Price ticket"
+    },
+    {
+      "name" : "payment",
+      "type" : {
+        "type": "enum",
+        "name" : "payment",
+        "symbols": ["DEBT", "INSTALLMENTS", "PAYPAL"]
+      }
+
+    }
+  ]
+}
