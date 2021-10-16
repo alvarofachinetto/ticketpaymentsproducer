@@ -1,9 +1,8 @@
 package com.ticketpaymentsproducer.producer;
 
+import com.avro.ticketpayments.Ticket;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ticketpaymentsproducer.domain.Ticket;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
@@ -17,71 +16,67 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 
 @Slf4j
 @Component
 public class TicketPaymentsProducer {
 
     @Autowired
-    private KafkaTemplate<Integer, String> kafkaTemplate;
+    private KafkaTemplate<Integer, Ticket> kafkaTemplate;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     private final String TOPIC = "ticket-payments";
 
-    public void sendTicket(Ticket ticket) throws JsonProcessingException {
+    public void sendTicket(Ticket ticketRequest) throws JsonProcessingException {
         Integer key = keyGenerator();
-        String value = objectMapper.writeValueAsString(ticket);
 
-        ListenableFuture<SendResult<Integer, String>> listenableFuture = kafkaTemplate.sendDefault(key, value);
+        ListenableFuture<SendResult<Integer, Ticket>> listenableFuture = kafkaTemplate.sendDefault(key, ticketRequest);
 
-        listenableFuture.addCallback(new ListenableFutureCallback<SendResult<Integer, String>>() {
+        listenableFuture.addCallback(new ListenableFutureCallback<SendResult<Integer, Ticket>>() {
             @Override
             public void onFailure(Throwable ex) {
                 handlerFailure(ex);
             }
 
             @Override
-            public void onSuccess(SendResult<Integer, String> result) {
-                handlerSuccess(key, value, result);
+            public void onSuccess(SendResult<Integer, Ticket> result) {
+                handlerSuccess(key, ticketRequest, result);
             }
         });
     }
 
-    public ListenableFuture<SendResult<Integer, String>> sendTicket2(Ticket ticket) throws JsonProcessingException {
+    public ListenableFuture<SendResult<Integer, Ticket>> sendTicket2(Ticket ticketRequest) throws JsonProcessingException {
         Integer key = keyGenerator();
-        String value = objectMapper.writeValueAsString(ticket);
 
-        ProducerRecord<Integer, String> record = buildProducerRecord(key, value, TOPIC);
+        ProducerRecord<Integer, Ticket> record = buildProducerRecord(key, ticketRequest, TOPIC);
 
-        ListenableFuture<SendResult<Integer, String>> listenableFuture = kafkaTemplate.send(record);
+        ListenableFuture<SendResult<Integer, Ticket>> listenableFuture = kafkaTemplate.send(record);
 
-        listenableFuture.addCallback(new ListenableFutureCallback<SendResult<Integer, String>>() {
+        listenableFuture.addCallback(new ListenableFutureCallback<SendResult<Integer, Ticket>>() {
             @Override
             public void onFailure(Throwable ex) {
                 handlerFailure(ex);
             }
 
             @Override
-            public void onSuccess(SendResult<Integer, String> result) {
-                handlerSuccess(key, value, result);
+            public void onSuccess(SendResult<Integer, Ticket> result) {
+                handlerSuccess(key, ticketRequest, result);
             }
         });
 
         return listenableFuture;
-
     }
 
-    private ProducerRecord<Integer, String> buildProducerRecord(Integer key, String value, String topic) {
+    private ProducerRecord<Integer, Ticket> buildProducerRecord(Integer key, Ticket value, String topic) {
 
         List<Header> headerList = List.of(new RecordHeader("event-source", "scanner".getBytes()));
 
-        return new ProducerRecord<>(topic, null, key, value, headerList);
+        return new ProducerRecord<Integer, Ticket>(topic, null, null, key, value, headerList);
     }
 
-    private void handlerSuccess(Integer key, String value, SendResult<Integer, String> result) {
+    private void handlerSuccess(Integer key, Ticket value, SendResult<Integer, Ticket> result) {
         log.info("Send message SuccessFully for key: {}, value: {} and partition: {}", key, value, result.getProducerRecord().partition());
     }
 

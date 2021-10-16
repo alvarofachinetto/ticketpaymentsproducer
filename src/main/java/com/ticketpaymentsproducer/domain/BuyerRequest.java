@@ -4,18 +4,25 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.br.CPF;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Address {
+public class BuyerRequest {
 
     @NotNull
-    private String street;
+    private String name;
 
+    @CPF
     @NotNull
-    private Integer number;
+    private String cpf;
+
+    @Email
+    @NotNull
+    private String email;
 }

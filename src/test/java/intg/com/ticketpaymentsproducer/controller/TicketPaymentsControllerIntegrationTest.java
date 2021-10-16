@@ -1,14 +1,15 @@
 package com.ticketpaymentsproducer.controller;
 
-import com.ticketpaymentsproducer.domain.Address;
-import com.ticketpaymentsproducer.domain.Buyer;
-import com.ticketpaymentsproducer.domain.Payment;
-import com.ticketpaymentsproducer.domain.Ticket;
+import com.avro.ticketpayments.Address;
+import com.avro.ticketpayments.Buyer;
+import com.avro.ticketpayments.Payment;
+import com.avro.ticketpayments.Ticket;
 import com.ticketpaymentsproducer.ticketpaymentsproducer.TicketpaymentsproducerApplication;
+import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,15 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
-import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.TestPropertySource;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,13 +44,13 @@ class TicketPaymentsControllerIntegrationTest {
     EmbeddedKafkaBroker embeddedKafkaBroker;
 
 
-    private Consumer<Integer, String> consumer;
+    private Consumer<Integer, Object> consumer;
 
     //criando um kafka embutido com configs basicas
     @BeforeEach
     void setup(){
         Map<String, Object> configs = new HashMap<>(KafkaTestUtils.consumerProps("group1", "true", embeddedKafkaBroker));
-        consumer = new DefaultKafkaConsumerFactory<>(configs, new IntegerDeserializer(), new StringDeserializer()).createConsumer();
+        consumer = new DefaultKafkaConsumerFactory<>(configs, new IntegerDeserializer(), new KafkaAvroDeserializer()).createConsumer();
         embeddedKafkaBroker.consumeFromAllEmbeddedTopics(consumer);
     }
 
@@ -62,25 +60,20 @@ class TicketPaymentsControllerIntegrationTest {
     @Test
     @Timeout(5)
     void postTocketPayments(){
-        Address address = Address.builder().
-                street("Av Jucelino Kubistcheck")
-                .number(25414)
-                .build();
 
-        Buyer buyer = Buyer.builder()
-                .name("Álvaro Silva")
-                .cpf("980.744.640-67")
-                .email("alvaro.silva@gmail.com")
-                .build();
-
-        Ticket ticket = Ticket.builder()
-                .title("Cars 4")
-                .dateTime(LocalDateTime.of(2021,11,27,20,15))
-                .address(address)
-                .buyer(buyer)
-                .amount(1)
-                .price(new BigDecimal(15.35))
-                .payment(Payment.PAYPAL)
+        Ticket ticket = Ticket.newBuilder()
+                .setTitle("Cars 4")
+                .setAddressBuilder(Address.newBuilder()
+                        .setNumber(25414)
+                        .setStreet("Av Jucelino Kubistcheck"))
+                .setBuyerBuilder(Buyer.newBuilder()
+                        .setName("Álvaro Silva")
+                        .setCpf("980.744.640-67")
+                        .setEmail("alvaro.silva@gmail.com"))
+                .setDateTime("2021-09-12")
+                .setAmount(1)
+                .setPrice(15.35)
+                .setPayment(Payment.PAYPAL)
                 .build();
 
         HttpHeaders httpHeaders = new org.springframework.http.HttpHeaders();
@@ -92,9 +85,9 @@ class TicketPaymentsControllerIntegrationTest {
 
         assertEquals(HttpStatus.CREATED, ticketResponseEntity.getStatusCode());
 
-        ConsumerRecord<Integer, String> consumerRecord = KafkaTestUtils.getSingleRecord(consumer, "ticket-payments");
+        ConsumerRecord<Integer, Object> consumerRecord = KafkaTestUtils.getSingleRecord(consumer, "ticket-payments");
 
-        String value = consumerRecord.value();
+        Object value = consumerRecord.value();
 
         assertNotNull(value);
 

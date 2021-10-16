@@ -1,12 +1,32 @@
+import com.commercehub.gradle.plugin.avro.GenerateAvroJavaTask
+
+buildscript {
+	repositories {
+		jcenter()
+		mavenCentral()
+		maven { url 'https://plugins.gradle.org/m2/' }
+		}
+	dependencies {
+		//plugin needed to generate POJO from Avro schema
+		classpath("com.commercehub.gradle.plugin:gradle-avro-plugin:0.14.2")
+		}
+}
+
 plugins {
 	id 'org.springframework.boot' version '2.4.2'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+	id 'idea'
+	id 'com.commercehub.gradle.plugin.avro' version '0.9.1'
 }
 
 group = 'com.ticketpaymentsproducer'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
+
+repositories {
+	jcenter()
+}
 
 configurations {
 	compileOnly {
@@ -16,12 +36,17 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven {
+		url "https://packages.confluent.io/maven/"
+	}
 }
-
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.kafka:spring-kafka'
+	implementation "org.apache.avro:avro:1.10.0"
+	implementation 'io.confluent:kafka-avro-serializer:6.0.0'
+	implementation group: 'tech.allegro.schema.json2avro', name: 'converter', version: '0.2.10'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation ('org.springframework.boot:spring-boot-starter-test'){
@@ -29,6 +54,23 @@ dependencies {
 	}
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+}
+avro {
+	stringType = "CharSequence"
+	fieldVisibility = "PRIVATE"
+}
+
+task generateAvro(type: GenerateAvroJavaTask) {
+	//point plugin to folder with avro schemas
+	source("src/main/resources/avro")
+	//point plugin to folder with generated POJOs
+	outputDir(file("src/main/avro"))
+}
+
+compileJava.source(generateAvro.outputs)
 
 sourceSets{
 	test {

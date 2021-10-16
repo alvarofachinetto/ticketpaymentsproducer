@@ -1,13 +1,13 @@
 {
   "type": "record",
-  "namespace": "com.ticketpaymentsproducer",
+  "namespace": "com.avro.ticketpayments",
   "name": "Ticket",
   "version": "1",
   "fields": [
     { "name": "title", "type": "string", "doc": "Title movie" },
-    { "name": "address",
+    { "name": "Address",
       "type": {
-        "name": "address",
+        "name": "Address",
         "type": "record",
         "fields": [
           {
@@ -20,9 +20,9 @@
       }
     },
     {
-      "name": "buyer",
+      "name": "Buyer",
       "type": {
-          "name": "buyer",
+          "name": "Buyer",
           "type": "record",
           "fields": [
             {
@@ -47,10 +47,10 @@
       "name": "price", "type": "double", "doc": "Price ticket"
     },
     {
-      "name" : "payment",
+      "name" : "Payment",
       "type" : {
         "type": "enum",
-        "name" : "payment",
+        "name" : "Payment",
         "symbols": ["DEBT", "INSTALLMENTS", "PAYPAL"]
       }
 

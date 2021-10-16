@@ -1,5 +1,6 @@
 package com.ticketpaymentsproducer.domain;
 
+import com.avro.ticketpayments.Payment;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,28 +16,28 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Ticket {
+public class TicketRequest {
 
     @NotEmpty
     @NotNull
     private String title;
 
     @NotNull
-    private Address address;
+    private AddressRequest address;
 
     @NotNull
-    private Buyer buyer;
+    private BuyerRequest buyer;
 
     @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime dateTime;
+    private String dateTime;
 
     @NotNull
     private Integer amount;
 
     @NotNull
-    private BigDecimal price;
+    private Double price;
 
     @NotNull
-    private Payment payment;
+    private Payment paymentRequest;
 }
