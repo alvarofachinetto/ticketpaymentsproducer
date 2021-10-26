@@ -10,13 +10,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RestController
@@ -28,7 +33,7 @@ public class TicketPaymentsController {
 
 
     @PostMapping
-    public ResponseEntity<Ticket> reserveTicket(@Valid @RequestBody TicketRequest ticket) throws JsonProcessingException {
+    public ResponseEntity<Void> reserveTicket(@Valid @RequestBody TicketRequest ticket) throws JsonProcessingException {
          Ticket ticketReq = Ticket.newBuilder()
                 .setTitle(ticket.getTitle())
                 .setAddressBuilder(Address.newBuilder()
@@ -48,6 +53,6 @@ public class TicketPaymentsController {
 
         ticketPaymentProducer.sendTicket2(ticketReq);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ticketReq);
+        return ResponseEntity.status(HttpStatus.CREATED).body(null);
     }
 }
